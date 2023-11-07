@@ -232,6 +232,30 @@ namespace esphome
     return result;
   }
 
+  int EHMTX_queue::xpos(uint8_t item)
+  {
+    uint8_t width = 32;
+    int result = this->config_->scroll_step + width;
+
+    if (this->icon > 4)
+    {
+      result = result + item * 8;
+    }
+    else
+    {
+      float step = static_cast<float>(width - 8 * this->icon) / static_cast<float>(this->icon + 1);
+      uint8_t target = round(step * (item + 1) + 8 * item);
+
+      if (this->sbitmap[item].r > target)
+      {
+        result = result > target ? result : target;
+        this->sbitmap[item].r = result;
+      }
+    }
+
+    return result;
+  }
+
   void EHMTX_queue::update_screen()
   {
     if (millis() - this->config_->last_rainbow_time >= EHMTXv2_RAINBOW_INTERVALL)
@@ -659,6 +683,18 @@ namespace esphome
 #endif
         break;
 
+      case MODE_BITMAP_STACK_SCREEN:
+#ifndef USE_ESP8266
+        if (this->sbitmap != NULL)
+        {
+          for (uint8_t i = 0; i < this->icon; i++)
+          {
+            this->config_->display->image(this->xpos(i), 0, this->config_->icons[this->sbitmap[i].b]);
+          }
+        }
+#endif
+        break;
+
 #ifdef USE_Fireplugin
       case MODE_FIRE:
       {
@@ -833,5 +869,33 @@ namespace esphome
 
     ESP_LOGD(TAG, "calc_scroll_time: mode: %d text: \"%s\" pixels %d calculated: %.1f defined: %d max_steps: %d", this->mode, text.c_str(), this->pixels_, this->screen_time_ / 1000.0, screen_time, this->scroll_reset);
   }
-  
+
+  // Icons count, Screen time in seconds
+  void EHMTX_queue::calc_scroll_time(uint8_t icon_count, uint16_t screen_time)
+  {
+    float display_duration;
+    float requested_time = 1000.0 * screen_time;
+
+    uint8_t width = 32;
+    uint8_t startx = 0;
+    uint16_t max_steps = 0;
+
+    this->pixels_ = 8 * icon_count;
+
+    if (this->pixels_ < 32)
+    {
+      this->screen_time_ = requested_time;
+    }
+    else
+    {
+      max_steps = EHMTXv2_SCROLL_COUNT * (width - startx) + EHMTXv2_SCROLL_COUNT * this->pixels_;
+      display_duration = static_cast<float>(max_steps * EHMTXv2_SCROLL_INTERVALL);
+      this->screen_time_ = (display_duration > requested_time) ? display_duration : requested_time;
+    }
+
+    this->scroll_reset = (width - startx) + this->pixels_;
+
+    ESP_LOGD(TAG, "calc_scroll_time: mode: %d icons count: %d pixels %d calculated: %.1f defined: %d max_steps: %d", this->mode, icon_count, this->pixels_, this->screen_time_ / 1000.0, screen_time, this->scroll_reset);
+  }
+
 }

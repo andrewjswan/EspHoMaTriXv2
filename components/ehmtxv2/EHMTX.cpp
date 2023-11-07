@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <string>
 
 namespace esphome
 {
@@ -334,6 +335,95 @@ namespace esphome
     }
     screen->status();
   }
+
+  std::string trim(std::string const& s)
+  {
+    auto const first{ s.find_first_not_of(' ') };
+    if (first == std::string::npos)
+        return {};
+    auto const last{ s.find_last_not_of(' ') };
+    return s.substr(first, (last - first + 1));
+  }
+
+  void EHMTX::bitmap_stack(std::string icons, int lifetime, int screen_time)
+  {
+    icons.erase(remove(icons.begin(), icons.end(), ' '), icons.end());  
+
+    std::string ic = get_icon_name(icons);
+    std::string id = "";
+
+    if (icons.find("|") != std::string::npos)
+    {
+      id = get_screen_id(icons);
+    } 
+
+    std::stringstream stream(ic);
+    std::string icon;
+    std::vector<std::string> tokens;
+    uint8_t count = 0;
+    
+    while (std::getline(stream, icon, ','))
+    {
+      icon = trim(icon);
+      if (!icon.empty())
+      {
+        tokens.push_back(icon);
+        count++;
+      }
+      if (count >= 64)
+      {
+        break;
+      }
+    }
+    if (count == 0)
+    {
+      ESP_LOGW(TAG, "bitmap stack: icons list [%s] empty", ic.c_str());
+      return;
+    }
+
+    EHMTX_queue *screen = this->find_mode_queue_element(MODE_BITMAP_STACK_SCREEN);
+    if (screen->sbitmap == NULL) 
+    {
+      screen->sbitmap = new Color[64];
+    }
+    
+    screen->icon = 0;
+    for (uint8_t i = 0; i < count; i++)
+    {
+      uint8_t icon = this->find_icon(tokens[i].c_str());
+
+      if (icon == MAXICONS)
+      {
+        ESP_LOGW(TAG, "icon %d/%s not found => skip", icon, tokens[i].c_str());
+        for (auto *t : on_icon_error_triggers_)
+        {
+          t->process(tokens[i]);
+        }
+      }
+      else
+      {
+        screen->sbitmap[screen->icon] = Color(255, 0, icon);
+        screen->icon++;
+      }
+    }
+    if (screen->icon == 0)
+    {
+      ESP_LOGW(TAG, "bitmap stack: icons list [%s] does not contain any known icons.", ic.c_str());
+      return;
+    }
+    
+    screen->mode = MODE_BITMAP_STACK_SCREEN;
+    screen->icon_name = ic;
+    screen->text = id;
+    screen->calc_scroll_time(screen->icon, screen_time);
+    screen->endtime = this->get_tick() + screen->screen_time_;
+    for (auto *t : on_add_screen_triggers_)
+    {
+      t->process(screen->icon_name, (uint8_t)screen->mode);
+    }
+    ESP_LOGD(TAG, "bitmap stack: has %d icons from: [%s] screen_time: %d", screen->icon, icons.c_str(), screen_time);
+    screen->status();
+  }
 #endif
 
 #ifdef USE_ESP8266
@@ -348,6 +438,10 @@ namespace esphome
   void EHMTX::rainbow_bitmap_small(std::string i, std::string t, int l, int s, bool f)
   {
     ESP_LOGW(TAG, "bitmap_screen_rainbow is not available on ESP8266");
+  }
+  void EHMTX::bitmap_stack(std::string i, int l, int s)
+  {
+    ESP_LOGW(TAG, "bitmap_stack is not available on ESP8266");
   }
 #endif
 
@@ -534,6 +628,7 @@ namespace esphome
     register_service(&EHMTX::bitmap_screen, "bitmap_screen", {"icon", "lifetime", "screen_time"});
     register_service(&EHMTX::bitmap_small, "bitmap_small", {"icon", "text", "lifetime", "screen_time", "default_font", "r", "g", "b"});
     register_service(&EHMTX::rainbow_bitmap_small, "rainbow_bitmap_small", {"icon", "text", "lifetime", "screen_time", "default_font"});
+    register_service(&EHMTX::bitmap_stack, "bitmap_stack", {"icons", "lifetime", "screen_time"});
 #endif
 
     #ifdef USE_Fireplugin
