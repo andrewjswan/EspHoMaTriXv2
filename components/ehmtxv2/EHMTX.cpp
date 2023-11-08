@@ -402,7 +402,7 @@ namespace esphome
       }
       else
       {
-        screen->sbitmap[screen->icon] = Color(255, 0, icon);
+        screen->sbitmap[screen->icon] = Color(127, 255, icon); // int16_t 32767 = uint8_t(127,255)
         screen->icon++;
       }
     }
@@ -415,6 +415,7 @@ namespace esphome
     screen->mode = MODE_BITMAP_STACK_SCREEN;
     screen->icon_name = ic;
     screen->text = id;
+    screen->default_font = (id != "two"); // true - one side scroll, false - two side if supported
     screen->calc_scroll_time(screen->icon, screen_time);
     screen->endtime = this->get_tick() + (lifetime > 0 ? lifetime * 60000.0 : screen->screen_time_);
     for (auto *t : on_add_screen_triggers_)
@@ -977,7 +978,14 @@ namespace esphome
         {
           this->queue[this->screen_pointer]->last_time = ts + this->queue[this->screen_pointer]->screen_time_;
           // todo nur bei animationen
-          if (this->queue[this->screen_pointer]->icon < this->icon_count)
+          if (this->queue[this->screen_pointer]->mode == MODE_BITMAP_STACK_SCREEN && this->queue[this->screen_pointer]->sbitmap != NULL)
+          {
+            for (uint8_t i = 0; i < this->queue[this->screen_pointer]->icon; i++)
+            {
+              this->icons[this->queue[this->screen_pointer]->sbitmap[i].b]->set_frame(0);
+            }
+          }
+          else if (this->queue[this->screen_pointer]->icon < this->icon_count)
           {
             this->icons[this->queue[this->screen_pointer]->icon]->set_frame(0);
           }
