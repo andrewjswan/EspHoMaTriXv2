@@ -6,6 +6,8 @@
 #endif
 #define USE_Fireplugin
 #include "esphome/components/time/real_time_clock.h"
+#include "esphome/components/image/image.h"
+#include "esphome/components/animation/animation.h"
 
 #if defined CONFIG_IDF_TARGET_ESP32S3 || defined CONFIG_IDF_TARGET_ESP32
   #undef USE_Fireplugin
