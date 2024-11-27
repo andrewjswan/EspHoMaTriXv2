@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = ["display", "light", "api"]
-AUTO_LOAD = ["ehmtxv2", "json", "image", "animation"]
+AUTO_LOAD = ["ehmtxv2", "json"]
 IMAGE_TYPE_RGB565 = 4
 MAXFRAMES = 110
 MAXICONS = 120
@@ -348,7 +348,10 @@ async def to_code(config):
             thumbnail = frame.copy()
             thumbnail.thumbnail((32,8), Image.ANTIALIAS)
             yield thumbnail
-
+    
+    cg.add_library("image", None)
+    cg.add_library("animation", None)
+    
     var = cg.new_Pvariable(config[CONF_ID])
 
     logging.info(f"Preparing icons, this may take some seconds.")
