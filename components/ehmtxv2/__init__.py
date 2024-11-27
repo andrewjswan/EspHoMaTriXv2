@@ -349,8 +349,8 @@ async def to_code(config):
             thumbnail.thumbnail((32,8), Image.ANTIALIAS)
             yield thumbnail
     
-    cg.add_library("image", None)
-    cg.add_library("animation", None)
+    cg.add_library("esphome/esphome/components/image", None)
+    cg.add_library("esphome/esphome/components/animation", None)
     
     var = cg.new_Pvariable(config[CONF_ID])
 
