@@ -7,9 +7,11 @@
   #define F(x) (x)
 #endif
 
-#if defined CONFIG_IDF_TARGET_ESP32S3 || defined CONFIG_IDF_TARGET_ESP32
-  #pragma warning ( "With IDF-Framework no Fire") 
-  #undef USE_Fireplugin
+#if defined USE_Fireplugin 
+  #if defined CONFIG_IDF_TARGET_ESP32 || defined CONFIG_IDF_TARGET_ESP32C3 || defined CONFIG_IDF_TARGET_ESP32S3
+    #pragma warning ( "With IDF-Framework no Fire") 
+    #undef USE_Fireplugin
+  #endif
 #endif
 
 const uint8_t MAXQUEUE = 24;
@@ -35,7 +37,7 @@ const uint8_t TEXTSCROLLSTART = 8;
 const uint8_t TEXTSTARTOFFSET = (32 - 8);
 
 const uint16_t POLLINGINTERVAL = 250;
-static const char *const EHMTX_VERSION = "2025.8.1";
+static const char *const EHMTX_VERSION = "2025.10.1";
 static const char *const TAG = "EHMTXv2";
 
 enum show_mode : uint8_t
