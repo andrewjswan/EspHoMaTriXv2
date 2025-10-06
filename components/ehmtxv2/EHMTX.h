@@ -7,9 +7,11 @@
   #define F(x) (x)
 #endif
 
-#if defined CONFIG_IDF_TARGET_ESP32S3 || defined CONFIG_IDF_TARGET_ESP32
-  #pragma warning ( "With IDF-Framework no Fire") 
-  #undef USE_Fireplugin
+#if defined USE_Fireplugin 
+  #if defined CONFIG_IDF_TARGET_ESP32 || defined CONFIG_IDF_TARGET_ESP32C3 || defined CONFIG_IDF_TARGET_ESP32S3
+    #pragma warning ( "With IDF-Framework no Fire") 
+    #undef USE_Fireplugin
+  #endif
 #endif
 
 const uint8_t MAXQUEUE = 24;
