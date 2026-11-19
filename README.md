@@ -7,7 +7,7 @@
 > [!WARNING]
 > **Project Migrated & Renamed:** As noted in the announcement below, the original author (@lubeda) has officially ended development of **[EspHoMaTriXv2](https://github.com/lubeda/EspHoMaTriXv2)**. 
 >
-> To continue maintaining and evolving this component for future ESPHome versions, the project has migrated to a standalone repository at [**andrewjswan/pixel-clock**](https://github.com) and has been renamed to **`pixel-clock`**.
+> To continue maintaining and evolving this component for future ESPHome versions, the project has migrated to a standalone repository at [**andrewjswan/pixel-clock**](https://github.com/andrewjswan/pixel-clock) and has been renamed to **`pixel-clock`**.
 >
 > This repository is now archived and will no longer receive updates. All future features, bug fixes, and documentation are available exclusively in the new repository — please update your ESPHome `external_components` configuration accordingly.
 
